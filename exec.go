@@ -7,29 +7,33 @@ import (
 	"log"
 )
 
+type Key struct {
+	key string
+}
+
 // PrepareStmtTx 附带事物的预编译SQL批量执行
-func PrepareStmtTx(query string, handle func(stmtTx string) (err error)) (err error) {
-	/*if err = Tx(func(tx pgx.Tx) (err error) {
-		stmtName := "stmt"
-		stmt, err := tx.Prepare(context.Background(), stmtName, query)
-		if err != nil {
+func PrepareStmtTx(stmtName, query string, handle func(stmtTx string) (err error)) (err error) {
+	if err = Tx(func(tx pgx.Tx) (err error) {
+		if _, err = tx.Prepare(context.Background(), stmtName, query); err != nil {
 			log.Println(err)
 			return
 		}
 		defer func() {
-			pool.
+			if err = tx.Conn().Deallocate(context.Background(), stmtName); err != nil {
+				log.Println(err)
+				return
+			}
 		}()
-
-		if err = handle(stmt); err != nil {
+		if err = handle(stmtName); err != nil {
 			log.Println(err)
 			return
 		}
-
 		return
 	}); err != nil {
 		log.Println(err)
 		return
-	}*/
+	}
+
 	return
 }
 
