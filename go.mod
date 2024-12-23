@@ -3,8 +3,8 @@ module github.com/clong1995/go-db-postgresql
 go 1.23.3
 
 require (
-	github.com/clong1995/go-config v0.0.0-20241018013119-7c9eb1a671ac
-	github.com/jackc/pgx/v5 v5.7.1
+	github.com/clong1995/go-config v0.0.0-20241218020002-61a13628a781
+	github.com/jackc/pgx/v5 v5.7.2
 )
 
 require (

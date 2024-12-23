@@ -37,6 +37,35 @@ func PrepareStmtTx(stmtName, query string, handle func(stmtTx string) (err error
 	return
 }
 
+// BatchTx 批量数据的插入
+func BatchTx(tx pgx.Tx, query string, data [][]any) (err error) {
+	batch := &pgx.Batch{}
+	for _, v := range data {
+		_ = batch.Queue(query, v...)
+	}
+	br := tx.SendBatch(context.Background(), batch)
+	if err = br.Close(); err != nil {
+		log.Println(err)
+		return
+	}
+	return
+}
+
+// CopyTx 超大量数据插入的
+func CopyTx(tx pgx.Tx, tableName string, columnNames []string, data [][]any) {
+	table := pgx.Identifier{tableName}
+	_, err := tx.CopyFrom(
+		context.Background(),
+		table,
+		columnNames,
+		pgx.CopyFromRows(data),
+	)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+}
+
 // Tx 事物
 func Tx(handle func(tx pgx.Tx) (err error)) (err error) {
 	//开启事物
