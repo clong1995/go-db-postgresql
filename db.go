@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"github.com/clong1995/go-config"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"log"
@@ -34,7 +35,7 @@ func init() {
 		log.Fatalln(err)
 	}
 
-	log.Printf("[PostgreSQL] conn %s\n", ds)
+	fmt.Printf("[PostgreSQL] conn %s\n", ds)
 }
 
 func Close() {
