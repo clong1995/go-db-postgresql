@@ -39,4 +39,5 @@ func init() {
 
 func Close() {
 	pool.Close()
+	log.Println("db exited!")
 }
