@@ -40,5 +40,5 @@ func init() {
 
 func Close() {
 	pool.Close()
-	fmt.Println("db exited!")
+	fmt.Println("[PostgreSQL] db exited!")
 }
