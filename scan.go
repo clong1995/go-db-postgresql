@@ -39,5 +39,11 @@ func scan[T any](rows pgx.Rows) (res []T, err error) {
 			res = append(res, obj)
 		}
 	}
+
+	if err = rows.Err(); err != nil {
+		log.Println(err)
+		return
+	}
+
 	return
 }
