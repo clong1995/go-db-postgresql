@@ -7,9 +7,9 @@ import (
 	"log"
 )
 
-type Key struct {
+/*type Key struct {
 	key string
-}
+}*/
 
 // PrepareStmtTx 附带事物的预编译SQL批量执行
 func PrepareStmtTx(stmtName, query string, handle func(stmtTx string) (err error)) (err error) {
