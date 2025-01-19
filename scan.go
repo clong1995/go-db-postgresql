@@ -9,15 +9,12 @@ import (
 func scan[T any](rows pgx.Rows) (res []T, err error) {
 	var obj T
 	objType := reflect.TypeOf(obj)
-
 	if objType.Kind() == reflect.Struct {
-
 		length := objType.NumField()
-
 		scanPointers := make([]any, length)
-		var field reflect.Value
 		objValueElem := reflect.ValueOf(&obj).Elem()
 
+		var field reflect.Value
 		for i := 0; i < length; i++ {
 			field = objValueElem.Field(i)
 			scanPointers[i] = field.Addr().Interface()
@@ -45,5 +42,31 @@ func scan[T any](rows pgx.Rows) (res []T, err error) {
 		return
 	}
 
+	return
+}
+
+func scanOne[T any](row pgx.Row) (res T, err error) {
+	objType := reflect.TypeOf(res)
+	if objType.Kind() == reflect.Struct {
+		length := objType.NumField()
+		scanPointers := make([]any, length)
+		objValueElem := reflect.ValueOf(&res).Elem()
+
+		var field reflect.Value
+		for i := 0; i < length; i++ {
+			field = objValueElem.Field(i)
+			scanPointers[i] = field.Addr().Interface()
+		}
+
+		if err = row.Scan(scanPointers...); err != nil {
+			log.Println(err)
+			return
+		}
+	} else {
+		if err = row.Scan(&res); err != nil {
+			log.Println(err)
+			return
+		}
+	}
 	return
 }
