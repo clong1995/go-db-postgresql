@@ -9,8 +9,6 @@ import (
 func scan[T any](rows pgx.Rows) (res []T, err error) {
 	var obj T
 	objType := reflect.TypeOf(obj)
-	//查询多行，无法使用RowsToStructsByXxx，因为查询结果数据量巨大，同理，查询量巨大的，也不应该用本方法。
-	//rows.Next为流式，比如在写入csv、xlsx，推送的时候，就可以只处理当前条，节省内存。
 	if objType.Kind() == reflect.Struct {
 		length := objType.NumField()
 		scanPointers := make([]any, length)
@@ -48,9 +46,40 @@ func scan[T any](rows pgx.Rows) (res []T, err error) {
 }
 
 func scanOne[T any](row pgx.Row) (res T, err error) {
-	if err = row.Scan(&res); err != nil {
+	objType := reflect.TypeOf(res)
+	if objType.Kind() == reflect.Struct {
+		length := objType.NumField()
+		scanPointers := make([]any, length)
+		objValueElem := reflect.ValueOf(&res).Elem()
+
+		var field reflect.Value
+		for i := 0; i < length; i++ {
+			field = objValueElem.Field(i)
+			scanPointers[i] = field.Addr().Interface()
+		}
+
+		if err = row.Scan(scanPointers...); err != nil {
+			log.Println(err)
+			return
+		}
+	} else {
+		if err = row.Scan(&res); err != nil {
+			log.Println(err)
+			return
+		}
+	}
+
+	//https://stackoverflow.com/questions/61704842/how-to-scan-a-queryrow-into-a-struct-with-pgx
+	//res, err = pgx.CollectOneRow(row, pgx.RowToStructByPos[T])
+
+	/*if res, err = pgx.RowToStructByPos[T](row); err != nil {
 		log.Println(err)
 		return
-	}
+	}*/
+	/*if err = row.Scan(); err != nil {
+		log.Println(err)
+		return
+	}*/
+
 	return
 }
