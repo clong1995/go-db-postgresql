@@ -102,8 +102,13 @@ func QueryRow(query string, args ...any) (row pgx.Row) {
 
 // QueryRowScan 查询并扫描
 func QueryRowScan[T any](query string, args ...any) (res T, err error) {
-	row := pool.QueryRow(context.Background(), query, args...)
-	if res, err = scanOne[T](row); err != nil {
+	//QueryRow的源码也是调用了Query
+	rows, err := pool.Query(context.Background(), query, args...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if res, err = scanOne[T](rows); err != nil {
 		log.Println(err)
 		return
 	}
