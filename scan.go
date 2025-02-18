@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"github.com/jackc/pgx/v5"
 	"log"
@@ -34,7 +35,10 @@ func scanOne[T any](rows pgx.Rows) (res T, err error) {
 		rows,
 		pgx.RowToStructByPos[T],
 	); err != nil {
-		log.Fatal(err)
+		if !errors.Is(err, pgx.ErrNoRows) {
+			log.Println(err)
+			return
+		}
 	}
 
 	return
