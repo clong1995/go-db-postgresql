@@ -27,6 +27,10 @@ func scan[T any](rows pgx.Rows) (res []T, err error) {
 		}
 	}
 
+	if res == nil {
+		res = make([]T, 0)
+	}
+
 	return
 }
 
