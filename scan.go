@@ -8,6 +8,10 @@ import (
 	"reflect"
 )
 
+func Scan[T any](rows pgx.Rows) (res []T, err error) {
+	return scan[T](rows)
+}
+
 func scan[T any](rows pgx.Rows) (res []T, err error) {
 	var obj T
 	typ := reflect.TypeOf(obj)
