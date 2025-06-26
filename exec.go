@@ -7,9 +7,9 @@ import (
 	"log"
 )
 
-type Key struct {
+/*type Key struct {
 	key string
-}
+}*/
 
 // PrepareStmtTx 附带事物的预编译SQL批量执行
 func PrepareStmtTx(stmtName, query string, handle func(stmtTx string) (err error)) (err error) {
@@ -97,6 +97,21 @@ func Tx(handle func(tx pgx.Tx) (err error)) (err error) {
 // QueryRow 查询一条
 func QueryRow(query string, args ...any) (row pgx.Row) {
 	row = pool.QueryRow(context.Background(), query, args...)
+	return
+}
+
+// QueryRowScan 查询并扫描
+func QueryRowScan[T any](query string, args ...any) (res T, err error) {
+	//QueryRow的源码也是调用了Query
+	rows, err := pool.Query(context.Background(), query, args...)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	if res, err = scanOne[T](rows); err != nil {
+		log.Println(err)
+		return
+	}
 	return
 }
 

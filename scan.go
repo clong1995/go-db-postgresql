@@ -1,6 +1,8 @@
 package db
 
 import (
+	"errors"
+	"fmt"
 	"github.com/jackc/pgx/v5"
 	"log"
 	"reflect"
@@ -8,27 +10,12 @@ import (
 
 func scan[T any](rows pgx.Rows) (res []T, err error) {
 	var obj T
-	objType := reflect.TypeOf(obj)
-
-	if objType.Kind() == reflect.Struct {
-
-		length := objType.NumField()
-
-		scanPointers := make([]any, length)
-		var field reflect.Value
-		objValueElem := reflect.ValueOf(&obj).Elem()
-
-		for i := 0; i < length; i++ {
-			field = objValueElem.Field(i)
-			scanPointers[i] = field.Addr().Interface()
-		}
-
-		for rows.Next() {
-			if err = rows.Scan(scanPointers...); err != nil {
-				log.Println(err)
-				return
-			}
-			res = append(res, obj)
+	typ := reflect.TypeOf(obj)
+	//typ := reflect.TypeOf((*T)(nil)).Elem()
+	if typ.Kind() == reflect.Struct {
+		if res, err = pgx.CollectRows[T](rows, pgx.RowToStructByPos[T]); err != nil {
+			fmt.Printf("CollectRows error: %v", err)
+			return
 		}
 	} else {
 		for rows.Next() {
@@ -39,5 +26,24 @@ func scan[T any](rows pgx.Rows) (res []T, err error) {
 			res = append(res, obj)
 		}
 	}
+
+	if res == nil {
+		res = make([]T, 0)
+	}
+
+	return
+}
+
+func scanOne[T any](rows pgx.Rows) (res T, err error) {
+	if res, err = pgx.CollectOneRow[T](
+		rows,
+		pgx.RowToStructByPos[T],
+	); err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			log.Println(err)
+			return
+		}
+	}
+
 	return
 }
